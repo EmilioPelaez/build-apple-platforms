@@ -1,0 +1,113 @@
+name: 'Build Apple Platforms'
+description: 'Builds a project for all  platforms: iOS, macOS, watchOS, visionOS, and tvOS'
+author: 'Emilio Peláez'
+branding:
+  icon: 'command'
+  color: 'black'
+
+inputs:
+  workspace:
+    description: 'The path to the Xcode workspace file. Only one of workspace and project should be set.'
+    required: false
+  project:
+    description: 'The path to the Xcode project file. Only one of workspace and project should be set.'
+    required: false
+  scheme:
+    description: 'The scheme to build'
+    required: true
+  watch_scheme:
+    description: 'The scheme to build the watchOS App'
+    required: false
+  exclude:
+    description: 'Comma-separated list of platforms to exclude from the build, supported values: ios, mac, watch, vision, tv'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Apple Xcode Select
+      uses: BoundfoxStudios/action-xcode-select@v1
+      with:
+        version: latest
+        beta: false
+
+    - run: echo -e "\033[33mStarting iOS build\033[0m"
+      if: ${{ !contains(inputs.exclude, 'ios') }}
+      shell: bash
+    - name: Build iOS
+      if: ${{ !contains(inputs.exclude, 'ios') }}
+      uses: sersoft-gmbh/xcodebuild-action@v3
+      with:
+        workspace: ${{ inputs.workspace }}
+        project: ${{ inputs.project }}
+        scheme: ${{ inputs.scheme }}
+        destination: generic/platform=iOS Simulator
+        action: build
+    - run: echo -e "\033[32mCompleted iOS build\033[0m"
+      if: ${{ !contains(inputs.exclude, 'ios') }}
+      shell: bash
+
+    - run: echo -e "\033[33mStarting macOS build\033[0m"
+      if: ${{ !contains(inputs.exclude, 'mac') }}
+      shell: bash
+    - name: Build macOS
+      if: ${{ !contains(inputs.exclude, 'mac') }}
+      uses: sersoft-gmbh/xcodebuild-action@v3
+      with:
+        workspace: ${{ inputs.workspace }}
+        project: ${{ inputs.project }}
+        scheme: ${{ inputs.scheme }}
+        destination: generic/platform=macOS
+        action: build
+        build-settings: CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+    - run: echo -e "\033[32mCompleted macOS build\033[0m"
+      if: ${{ !contains(inputs.exclude, 'mac') }}
+      shell: bash
+
+    - run: echo -e "\033[33mStarting watchOS build\033[0m"
+      if: ${{ !contains(inputs.exclude, 'watch') && inputs.watch_scheme }}
+      shell: bash
+    - name: Build watchOS
+      if: ${{ !contains(inputs.exclude, 'watch') && inputs.watch_scheme }}
+      uses: sersoft-gmbh/xcodebuild-action@v3
+      with:
+        workspace: ${{ inputs.workspace }}
+        project: ${{ inputs.project }}
+        scheme: ${{ inputs.watch_scheme }}
+        destination: generic/platform=watchOS Simulator
+        action: build
+    - run: echo -e "\033[32mCompleted watchOS build\033[0m"
+      if: ${{ !contains(inputs.exclude, 'watch') && inputs.watch_scheme }}
+      shell: bash
+
+    - run: echo -e "\033[33mStarting visionOS build\033[0m"
+      if: ${{ !contains(inputs.exclude, 'vision') }}
+      shell: bash
+    - name: Build visionOS
+      if: ${{ !contains(inputs.exclude, 'vision') }}
+      uses: sersoft-gmbh/xcodebuild-action@v3
+      with:
+        workspace: ${{ inputs.workspace }}
+        project: ${{ inputs.project }}
+        scheme: ${{ inputs.scheme }}
+        destination: generic/platform=visionOS Simulator
+        action: build
+    - run: echo -e "\033[32mCompleted visionOS build\033[0m"
+      if: ${{ !contains(inputs.exclude, 'vision') }}
+      shell: bash
+
+    - run: echo -e "\033[33mStarting tvOS build\033[0m"
+      if: ${{ !contains(inputs.exclude, 'tv') }}
+      shell: bash
+    - name: Build tvOS
+      if: ${{ !contains(inputs.exclude, 'tv') }}
+      uses: sersoft-gmbh/xcodebuild-action@v3
+      with:
+        workspace: ${{ inputs.workspace }}
+        project: ${{ inputs.project }}
+        scheme: ${{ inputs.scheme }}
+        destination: generic/platform=tvOS Simulator
+        action: build
+    - run: echo -e "\033[32mCompleted tvOS build\033[0m"
+      if: ${{ !contains(inputs.exclude, 'tv') }}
+      shell: bash
